@@ -6,7 +6,7 @@
 #include <numeric>
 #include <iterator>
 
-int main()
+void Day1()
 {
     std::ifstream InputStream;
     InputStream.open("day1input.txt", std::ios::in);
@@ -27,7 +27,7 @@ int main()
             {
                 if (CurrentMax > *MaxesIterator)
                 {
-                    uint32_t ReplacedRank = std::distance(TopMaxes.begin(), MaxesIterator);
+                    int64_t ReplacedRank = std::distance(TopMaxes.begin(), MaxesIterator);
                     TopMaxes.insert(MaxesIterator, CurrentMax);
                     TopMaxes.pop_back();
                     std::cout << "Found a new max " << CurrentMax << " at rank " << ReplacedRank <<
