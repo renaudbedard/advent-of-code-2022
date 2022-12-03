@@ -46,7 +46,7 @@ void PartTwo()
     if (!InputStream) throw new std::runtime_error("Can't find Day 3 input text file");
 
     uint32_t TotalPriority = 0;
-    std::string* GroupLines = new std::string[3];
+    std::string GroupLines[3];
 
     while (!InputStream.eof())
     {
@@ -74,8 +74,6 @@ void PartTwo()
         std::cout << CommonItem << " => " << ThisPriority << "\n";
         TotalPriority += ThisPriority;
     }
-
-    delete[] GroupLines;
 
     std::cout << "[Part 2] Total Priority : " << TotalPriority;
 }
