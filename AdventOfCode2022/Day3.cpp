@@ -4,7 +4,7 @@
 #include <stdexcept>
 #include <cctype>
 
-void PartOne()
+void Day3PartOne()
 {
     std::ifstream InputStream;
     InputStream.open("day3input.txt", std::ios::in);
@@ -39,7 +39,7 @@ void PartOne()
     std::cout << "[Part 1] Total Priority : " << TotalPriority << "\n\n";
 }
 
-void PartTwo()
+void Day3PartTwo()
 {
     std::ifstream InputStream;
     InputStream.open("day3input.txt", std::ios::in);
@@ -80,6 +80,6 @@ void PartTwo()
 
 void Day3()
 {
-    PartOne();
-    PartTwo();
+    Day3PartOne();
+    Day3PartTwo();
 }
