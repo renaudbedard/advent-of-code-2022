@@ -5,3 +5,4 @@ void Day2();
 void Day3();
 void Day4();
 void Day5();
+void Day6();
