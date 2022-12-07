@@ -36,6 +36,16 @@ struct File
 
         return TotalSize;
     }
+
+    ~File() 
+    {
+        if (ChildCount > 0)
+        {
+            for (int i = 0; i < ChildCount; i++)
+                delete Children[i];
+            delete[] Children;
+        }
+    }
 };
 
 void Day7()
