@@ -7,9 +7,11 @@ void Day6();
 void Day7();
 void Day8();
 
+void Day9();
+
 int main()
 {
-	Day8();
+	Day9();
 
 	return 0;
 }
