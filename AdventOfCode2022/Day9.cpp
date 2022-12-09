@@ -5,16 +5,9 @@
 
 struct int2
 {
-    int X { 0 };
-    int Y { 0 };
+    int X = 0, Y = 0;
 
     int2() = default;
-    int2(const int2& other) = default;
-    int2& operator=(const int2& other) = default;
-    int2(int2&& other) = default;
-    int2& operator=(int2&& other) = default;
-
-    int2(int v) : X(v), Y(v) { }
     int2(int x, int y) : X(x), Y(y) { }
 
     int2& operator+=(const int2& rhs)
@@ -23,33 +16,18 @@ struct int2
         Y += rhs.Y;
         return *this;
     }
-    friend int2 operator+(int2 lhs, const int2& rhs)
-    {
-        lhs += rhs;
-        return lhs;
-    }
 
-    int2& operator-=(const int2& rhs)
-    {
-        X -= rhs.X;
-        Y -= rhs.Y;
-        return *this;
-    }
     friend int2 operator-(int2 lhs, const int2& rhs)
     {
-        lhs -= rhs;
+        lhs.X -= rhs.X;
+        lhs.Y -= rhs.Y;
         return lhs;
     }
 
-    int2& operator*=(const int2& rhs)
-    {
-        X *= rhs.X;
-        Y *= rhs.Y;
-        return *this;
-    }
     friend int2 operator*(int2 lhs, const int2& rhs)
     {
-        lhs *= rhs;
+        lhs.X *= rhs.X;
+        lhs.Y *= rhs.Y;
         return lhs;
     }
 };
@@ -79,17 +57,16 @@ namespace std
 }
 
 inline bool operator==(const int2& lhs, const int2& rhs) { return lhs.X == rhs.X && lhs.Y == rhs.Y; }
-inline bool operator!=(const int2& lhs, const int2& rhs) { return !(lhs == rhs); }
 
 void Day9()
 {
-    std::ifstream InputStream;
-    InputStream.open("day9input.txt", std::ios::in);
-
     const int RopeLength = 10; // 2 for Part 1, 10 for Part 2
     int2 Knots[RopeLength];
 
     std::unordered_set<int2> TailVisitedPositions;
+
+    std::ifstream InputStream;
+    InputStream.open("day9input.txt", std::ios::in);
 
     for (std::string ThisLine; std::getline(InputStream, ThisLine) && !ThisLine.empty(); )
     {
@@ -113,7 +90,7 @@ void Day9()
                 int2 AbsHeadDistance = std::abs(HeadDistance);
 
                 if (std::cmax(AbsHeadDistance) > 1) // If at least 2 units away on one axis,
-                    Knots[j] += std::min(AbsHeadDistance, int2(1)) * std::sgn(HeadDistance); // Move towards head at most 1 unit on each axis
+                    Knots[j] += std::min(AbsHeadDistance, int2(1, 1)) * std::sgn(HeadDistance); // Move towards head at most 1 unit on each axis
             }
 
             TailVisitedPositions.insert(Knots[RopeLength - 1]);
