@@ -4,8 +4,9 @@
 #include <array>
 #include <queue>
 #include <chrono>
+#include <unordered_set>
 
-#define PART_TWO
+//#define PART_TWO
 
 struct int2
 {
@@ -28,6 +29,22 @@ struct int2
         return lhs;
     }
 };
+
+namespace std
+{
+    // Hash function template from https://stackoverflow.com/a/17017281/1721329
+    template <>
+    struct hash<int2>
+    {
+        size_t operator()(const int2& k) const
+        {
+            size_t res = 17;
+            res = res * 31 + hash<int>()(k.X);
+            res = res * 31 + hash<int>()(k.Y);
+            return res;
+        }
+    };
+}
 
 inline bool operator==(const int2& lhs, const int2& rhs) { return lhs.X == rhs.X && lhs.Y == rhs.Y; }
 inline bool operator!=(const int2& lhs, const int2& rhs) { return lhs.X != rhs.X || lhs.Y != rhs.Y; }
@@ -54,7 +71,7 @@ void Day12()
     auto start = std::chrono::high_resolution_clock::now();
 
     int2 Goal;
-    std::vector<int2> PossibleOrigins;
+    std::unordered_set<int2> PossibleOrigins;
 
     std::ifstream InputStream;
 
@@ -64,12 +81,12 @@ void Day12()
     int Cursor = 0;
     for (char Char; InputStream.get(Char); )
     {
-        if (std::isspace(static_cast<unsigned char>(Char))) 
+        if (std::isspace(static_cast<unsigned char>(Char)))
             continue;
 
         if (Char == 'S')
         {
-            PossibleOrigins.push_back(IndexToCoord(Cursor));
+            PossibleOrigins.insert(IndexToCoord(Cursor));
             Heightmap[Cursor++] = 0;
         }
         else if (Char == 'E')
@@ -81,7 +98,7 @@ void Day12()
         {
 #ifdef PART_TWO
             if (Char == 'a')
-                PossibleOrigins.push_back(IndexToCoord(Cursor));
+                PossibleOrigins.insert(IndexToCoord(Cursor));
 #endif
             Heightmap[Cursor++] = Char - 'a';
         }
@@ -120,40 +137,39 @@ void Day12()
                 if (CandidateDistance < Distance[CandidateIndex])
                 {
                     Previous[CandidateIndex] = Current;
+                    Distance[CandidateIndex] = CandidateDistance;
+
                     if (CandidateCoord == Goal)
                     {
                         FoundPath = true;
                         break;
                     }
 
-                    Distance[CandidateIndex] = CandidateDistance;
                     Queue.push(CandidateCoord);
                 }
             }
         }
     }
 
-    int TotalSteps = 0;
-    int2 Current = Goal;
+    int TotalSteps = Distance[CoordToIndex(Goal)];
+
+    auto finish = std::chrono::high_resolution_clock::now();
+
+    std::cout << "Found goal in " << TotalSteps << " steps. (took "
+        << std::chrono::duration_cast<std::chrono::microseconds>(finish - start).count()
+        << " microseconds)\n";
+
     Visualization.fill('.');
     Visualization[CoordToIndex(Goal)] = 'E';
 
-    while (std::find(PossibleOrigins.cbegin(), PossibleOrigins.cend(), Current) == PossibleOrigins.cend())
+    int2 Current = Goal;
+    while (PossibleOrigins.find(Current) == PossibleOrigins.end())
     {
         int2 Preceding = Current;
         Current = Previous[CoordToIndex(Current)];
         int2 Delta = Preceding - Current;
-        TotalSteps++;
-
         Visualization[CoordToIndex(Current)] = Delta.X == -1 ? '<' : Delta.X == 1 ? '>' : Delta.Y == -1 ? '^' : 'v';
     }
-
-    auto finish = std::chrono::high_resolution_clock::now();
-    std::cout << "(took "
-        << std::chrono::duration_cast<std::chrono::microseconds>(finish - start).count()
-        << " microseconds)\n";
-
-    std::cout << "Found goal in " << TotalSteps << " steps.\n";
 
     Cursor = 0;
     for (int i = 0; i < GridHeight; i++)
