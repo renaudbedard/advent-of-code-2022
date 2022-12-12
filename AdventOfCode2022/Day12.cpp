@@ -46,14 +46,51 @@ std::array<char, GridSize> Visualization;
 constexpr int CoordToIndex(const int2& coord) { return coord.Y * GridWidth + coord.X; };
 constexpr int2 IndexToCoord(int i) { return int2(i % GridWidth, i / GridWidth); };
 
-int FindPath(int2 Origin, int2 Goal, bool Visualize = false)
+void Day12()
 {
+    int2 Goal;
+    std::vector<int2> PossibleOrigins;
+
+    std::ifstream InputStream;
+
+    InputStream.open("day12input.txt", std::ios::in);
+    //InputStream.open("day12testinput.txt", std::ios::in);
+
+    int Cursor = 0;
+    for (char Char; InputStream.get(Char); )
+    {
+        if (std::isspace(static_cast<unsigned char>(Char))) 
+            continue;
+
+        if (Char == 'S')
+        {
+            PossibleOrigins.push_back(IndexToCoord(Cursor));
+            Heightmap[Cursor++] = 0;
+        }
+        else if (Char == 'E')
+        {
+            Goal = IndexToCoord(Cursor);
+            Heightmap[Cursor++] = 'z' - 'a';
+        }
+        else
+        {
+#ifdef PART_TWO
+            if (Char == 'a')
+                PossibleOrigins.push_back(IndexToCoord(Cursor));
+#endif
+            Heightmap[Cursor++] = Char - 'a';
+        }
+    }
+
     Distance.fill(std::numeric_limits<int>().max());
-    Distance[CoordToIndex(Origin)] = 0;
 
     auto Comparator = [](const int2& lhs, const int2& rhs) { return Distance[CoordToIndex(lhs)] > Distance[CoordToIndex(rhs)]; };
     std::priority_queue<int2, std::vector<int2>, decltype(Comparator)> Queue(Comparator);
-    Queue.push(Origin);
+    for (int2 PossibleOrigin : PossibleOrigins)
+    {
+        Distance[CoordToIndex(PossibleOrigin)] = 0;
+        Queue.push(PossibleOrigin);
+    }
 
     Previous.fill(int2(-1, -1));
 
@@ -94,85 +131,22 @@ int FindPath(int2 Origin, int2 Goal, bool Visualize = false)
         }
     }
 
-    if (!FoundPath)
-        return std::numeric_limits<int>().max();
-
     int TotalSteps = 0;
     int2 Current = Goal;
+    Visualization.fill('.');
+    Visualization[CoordToIndex(Goal)] = 'E';
 
-    if (Visualize)
-    {
-        Visualization.fill('.');
-        Visualization[CoordToIndex(Goal)] = 'E';
-    }
-
-    while (Current != Origin)
+    while (std::find(PossibleOrigins.cbegin(), PossibleOrigins.cend(), Current) == PossibleOrigins.cend())
     {
         int2 Preceding = Current;
         Current = Previous[CoordToIndex(Current)];
         int2 Delta = Preceding - Current;
         TotalSteps++;
 
-        if (Visualize)
-            Visualization[CoordToIndex(Current)] = Delta.X == -1 ? '<' : Delta.X == 1 ? '>' : Delta.Y == -1 ? '^' : 'v';
+        Visualization[CoordToIndex(Current)] = Delta.X == -1 ? '<' : Delta.X == 1 ? '>' : Delta.Y == -1 ? '^' : 'v';
     }
 
-    return TotalSteps;
-}
-
-void Day12()
-{
-    int2 Origin, Goal;
-    std::vector<int2> PossibleOrigins;
-
-    std::ifstream InputStream;
-
-    InputStream.open("day12input.txt", std::ios::in);
-    //InputStream.open("day12testinput.txt", std::ios::in);
-
-    int Cursor = 0;
-    for (char Char; InputStream.get(Char); )
-    {
-        if (std::isspace(static_cast<unsigned char>(Char))) 
-            continue;
-
-        if (Char == 'S')
-        {
-            Origin = IndexToCoord(Cursor);
-            PossibleOrigins.push_back(Origin);
-            Heightmap[Cursor++] = 0;
-        }
-        else if (Char == 'E')
-        {
-            Goal = IndexToCoord(Cursor);
-            Heightmap[Cursor++] = 'z' - 'a';
-        }
-        else
-        {
-#ifdef PART_TWO
-            if (Char == 'a')
-            {
-                int2 PotentialOrigin = IndexToCoord(Cursor);
-                PossibleOrigins.push_back(PotentialOrigin);
-            }
-#endif
-            Heightmap[Cursor++] = Char - 'a';
-        }
-    }
-
-    int MinSteps = std::numeric_limits<int>().max();
-    for (int2 PossibleOrigin : PossibleOrigins)
-    {
-        int StepsNeeded = FindPath(PossibleOrigin, Goal);
-        if (StepsNeeded < MinSteps)
-        {
-            Origin = PossibleOrigin;
-            MinSteps = StepsNeeded;
-        }
-    }
-
-    std::cout << "Found goal in " << MinSteps << " steps.\n";
-    FindPath(Origin, Goal, true);
+    std::cout << "Found goal in " << TotalSteps << " steps.\n";
 
     Cursor = 0;
     for (int i = 0; i < GridHeight; i++)
