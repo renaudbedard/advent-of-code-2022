@@ -3,8 +3,9 @@
 #include <string>
 #include <array>
 #include <queue>
+#include <chrono>
 
-//#define PART_TWO
+#define PART_TWO
 
 struct int2
 {
@@ -46,8 +47,12 @@ std::array<char, GridSize> Visualization;
 constexpr int CoordToIndex(const int2& coord) { return coord.Y * GridWidth + coord.X; };
 constexpr int2 IndexToCoord(int i) { return int2(i % GridWidth, i / GridWidth); };
 
+constexpr std::array<int2, 4> PossibleSteps = { int2(-1, 0), int2(1, 0), int2(0, -1), int2(0, 1) };
+
 void Day12()
 {
+    auto start = std::chrono::high_resolution_clock::now();
+
     int2 Goal;
     std::vector<int2> PossibleOrigins;
 
@@ -92,9 +97,6 @@ void Day12()
         Queue.push(PossibleOrigin);
     }
 
-    Previous.fill(int2(-1, -1));
-
-    std::array<int2, 4> PossibleSteps = { int2(-1, 0), int2(1, 0), int2(0, -1), int2(0, 1) };
     bool FoundPath = false;
 
     while (!Queue.empty() && !FoundPath)
@@ -145,6 +147,11 @@ void Day12()
 
         Visualization[CoordToIndex(Current)] = Delta.X == -1 ? '<' : Delta.X == 1 ? '>' : Delta.Y == -1 ? '^' : 'v';
     }
+
+    auto finish = std::chrono::high_resolution_clock::now();
+    std::cout << "(took "
+        << std::chrono::duration_cast<std::chrono::microseconds>(finish - start).count()
+        << " microseconds)\n";
 
     std::cout << "Found goal in " << TotalSteps << " steps.\n";
 
