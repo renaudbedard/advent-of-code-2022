@@ -4,7 +4,6 @@
 #include <array>
 #include <queue>
 #include <chrono>
-#include <unordered_set>
 
 //#define PART_TWO
 
@@ -29,22 +28,6 @@ struct int2
         return lhs;
     }
 };
-
-namespace std
-{
-    // Hash function template from https://stackoverflow.com/a/17017281/1721329
-    template <>
-    struct hash<int2>
-    {
-        size_t operator()(const int2& k) const
-        {
-            size_t res = 17;
-            res = res * 31 + hash<int>()(k.X);
-            res = res * 31 + hash<int>()(k.Y);
-            return res;
-        }
-    };
-}
 
 inline bool operator==(const int2& lhs, const int2& rhs) { return lhs.X == rhs.X && lhs.Y == rhs.Y; }
 inline bool operator!=(const int2& lhs, const int2& rhs) { return lhs.X != rhs.X || lhs.Y != rhs.Y; }
@@ -71,7 +54,7 @@ void Day12()
     auto start = std::chrono::high_resolution_clock::now();
 
     int2 Goal;
-    std::unordered_set<int2> PossibleOrigins;
+    std::vector<int2> PossibleOrigins;
 
     std::ifstream InputStream;
 
@@ -86,7 +69,7 @@ void Day12()
 
         if (Char == 'S')
         {
-            PossibleOrigins.insert(IndexToCoord(Cursor));
+            PossibleOrigins.push_back(IndexToCoord(Cursor));
             Heightmap[Cursor++] = 0;
         }
         else if (Char == 'E')
@@ -98,17 +81,16 @@ void Day12()
         {
 #ifdef PART_TWO
             if (Char == 'a')
-                PossibleOrigins.insert(IndexToCoord(Cursor));
+                PossibleOrigins.push_back(IndexToCoord(Cursor));
 #endif
             Heightmap[Cursor++] = Char - 'a';
         }
     }
 
-    Distance.fill(std::numeric_limits<int>().max());
+    Distance.fill(-1);
 
-    auto Comparator = [](const int2& lhs, const int2& rhs) { return Distance[CoordToIndex(lhs)] > Distance[CoordToIndex(rhs)]; };
-    std::priority_queue<int2, std::vector<int2>, decltype(Comparator)> Queue(Comparator);
-    for (int2 PossibleOrigin : PossibleOrigins)
+    std::queue<int2> Queue;
+    for (const int2& PossibleOrigin : PossibleOrigins)
     {
         Distance[CoordToIndex(PossibleOrigin)] = 0;
         Queue.push(PossibleOrigin);
@@ -118,13 +100,13 @@ void Day12()
 
     while (!Queue.empty() && !FoundPath)
     {
-        int2 Current = Queue.top();
+        int2 Current = Queue.front();
         Queue.pop();
 
         int CurrentIndex = CoordToIndex(Current);
         int CurrentHeight = Heightmap[CurrentIndex];
 
-        for (int2 Step : PossibleSteps)
+        for (const int2& Step : PossibleSteps)
         {
             int2 CandidateCoord = Current + Step;
             int CandidateIndex = CoordToIndex(CandidateCoord);
@@ -133,11 +115,10 @@ void Day12()
                 CandidateCoord.Y >= 0 && CandidateCoord.Y < GridHeight &&
                 (Heightmap[CandidateIndex] - CurrentHeight) <= 1)
             {
-                int CandidateDistance = Distance[CurrentIndex] + 1;
-                if (CandidateDistance < Distance[CandidateIndex])
+                if (Distance[CandidateIndex] == -1) // Not yet visited
                 {
                     Previous[CandidateIndex] = Current;
-                    Distance[CandidateIndex] = CandidateDistance;
+                    Distance[CandidateIndex] = Distance[CurrentIndex] + 1;
 
                     if (CandidateCoord == Goal)
                     {
@@ -163,7 +144,7 @@ void Day12()
     Visualization[CoordToIndex(Goal)] = 'E';
 
     int2 Current = Goal;
-    while (PossibleOrigins.find(Current) == PossibleOrigins.end())
+    while (std::find(PossibleOrigins.begin(), PossibleOrigins.end(), Current) == PossibleOrigins.end())
     {
         int2 Preceding = Current;
         Current = Previous[CoordToIndex(Current)];
