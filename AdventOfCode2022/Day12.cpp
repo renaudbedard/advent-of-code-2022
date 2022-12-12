@@ -6,6 +6,7 @@
 #include <chrono>
 
 //#define PART_TWO
+//#define VISUALIZATION
 
 struct int2
 {
@@ -41,8 +42,11 @@ const int GridSize = GridWidth * GridHeight;
 
 std::array<int, GridSize> Heightmap;
 std::array<int, GridSize> Distance;
+
+#ifdef VISUALIZATION
 std::array<int2, GridSize> Previous;
 std::array<char, GridSize> Visualization;
+#endif
 
 constexpr int CoordToIndex(const int2& coord) { return coord.Y * GridWidth + coord.X; };
 constexpr int2 IndexToCoord(int i) { return int2(i % GridWidth, i / GridWidth); };
@@ -111,23 +115,23 @@ void Day12()
             int2 CandidateCoord = Current + Step;
             int CandidateIndex = CoordToIndex(CandidateCoord);
 
-            if (CandidateCoord.X >= 0 && CandidateCoord.X < GridWidth &&
-                CandidateCoord.Y >= 0 && CandidateCoord.Y < GridHeight &&
-                (Heightmap[CandidateIndex] - CurrentHeight) <= 1)
+            if (CandidateCoord.X >= 0 && CandidateCoord.X < GridWidth &&    // In bounds
+                CandidateCoord.Y >= 0 && CandidateCoord.Y < GridHeight &&   
+                (Heightmap[CandidateIndex] - CurrentHeight) <= 1 &&         // Climb at most 1 height
+                Distance[CandidateIndex] == -1)                             // Not yet visited
             {
-                if (Distance[CandidateIndex] == -1) // Not yet visited
+#ifdef VISUALIZATION
+                Previous[CandidateIndex] = Current;
+#endif
+                Distance[CandidateIndex] = Distance[CurrentIndex] + 1;
+
+                if (CandidateCoord == Goal)
                 {
-                    Previous[CandidateIndex] = Current;
-                    Distance[CandidateIndex] = Distance[CurrentIndex] + 1;
-
-                    if (CandidateCoord == Goal)
-                    {
-                        FoundPath = true;
-                        break;
-                    }
-
-                    Queue.push(CandidateCoord);
+                    FoundPath = true;
+                    break;
                 }
+
+                Queue.push(CandidateCoord);
             }
         }
     }
@@ -140,6 +144,7 @@ void Day12()
         << std::chrono::duration_cast<std::chrono::microseconds>(finish - start).count()
         << " microseconds)\n";
 
+#ifdef VISUALIZATION
     Visualization.fill('.');
     Visualization[CoordToIndex(Goal)] = 'E';
 
@@ -159,4 +164,5 @@ void Day12()
             std::cout << Visualization[Cursor++];
         std::cout << '\n';
     }
+#endif
 }
