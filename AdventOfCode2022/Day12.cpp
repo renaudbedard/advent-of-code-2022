@@ -5,33 +5,10 @@
 #include <queue>
 #include <chrono>
 
+#include "int2.h"
+
 //#define PART_TWO
 //#define VISUALIZATION
-
-struct int2
-{
-    int X = 0, Y = 0;
-
-    int2() = default;
-    constexpr int2(int x, int y) : X(x), Y(y) { }
-
-    friend int2 operator+(int2 lhs, const int2& rhs)
-    {
-        lhs.X += rhs.X;
-        lhs.Y += rhs.Y;
-        return lhs;
-    }
-
-    friend int2 operator-(int2 lhs, const int2& rhs)
-    {
-        lhs.X -= rhs.X;
-        lhs.Y -= rhs.Y;
-        return lhs;
-    }
-};
-
-inline bool operator==(const int2& lhs, const int2& rhs) { return lhs.X == rhs.X && lhs.Y == rhs.Y; }
-inline bool operator!=(const int2& lhs, const int2& rhs) { return lhs.X != rhs.X || lhs.Y != rhs.Y; }
 
 const int GridWidth = 159;
 const int GridHeight = 41;

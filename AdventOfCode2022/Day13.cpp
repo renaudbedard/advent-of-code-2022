@@ -3,9 +3,7 @@
 #include <string>
 #include <vector>
 #include <algorithm>
-
-// Generic signum function from https://stackoverflow.com/a/4609795/1721329
-template <typename T> int sgn(T v) { return (T(0) < v) - (v < T(0)); }
+#include "math.h"
 
 struct Packet
 {
@@ -52,7 +50,7 @@ int ComparePackets(const Packet& lhs, const Packet& rhs, std::string Prefix = ""
 	if (lhs.Value != -1 && rhs.Value != -1)
 	{
 		// Both values are integers
-		int result = sgn(lhs.Value - rhs.Value);
+		int result = std::sgn(lhs.Value - rhs.Value);
 		if (result == -1)
 			std::cout << Prefix << "- Left side is smaller, so inputs are in the right order\n";
 		else if (result == 1)
@@ -95,6 +93,7 @@ int ComparePackets(const Packet& lhs, const Packet& rhs, std::string Prefix = ""
 			return ComparePackets(lhs, rhs.GetWrappedPacket(), Prefix);
 		}
 	}
+	return 0;
 }
 
 Packet ReadPacket(std::string PacketString, size_t& Cursor)
