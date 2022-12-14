@@ -1,6 +1,11 @@
+#define PART_TWO
+//#define VISUALIZATION
+
+#ifdef VISUALIZATION
 #define WIN32_LEAN_AND_MEAN
 #define NOMINMAX
 #include <windows.h>
+#endif
 
 #include <iostream>
 #include <fstream>
@@ -12,8 +17,7 @@
 
 #include "int2.h"
 
-#define PART_TWO
-
+#ifdef VISUALIZATION
 void WriteAt(std::string str, int2 pos) 
 {
 	std::wstring wideStr(str.begin(), str.end());
@@ -23,9 +27,12 @@ void WriteAt(std::string str, int2 pos)
 	DWORD dwBytesWritten = 0;
 	WriteConsoleOutputCharacter(output, wideStr.c_str(), (DWORD) str.size(), coord, &dwBytesWritten);
 }
+#endif
 
 void Day14()
 {
+	auto start = std::chrono::high_resolution_clock::now();
+
 	std::unordered_set<int2> Obstacles;
 	std::unordered_set<int2> RestingSand;
 
@@ -88,6 +95,7 @@ void Day14()
 #endif
 	};
 
+#ifdef VISUALIZATION
 	auto RefreshVisual = [&](int2 Coord)
 	{
 		int2 ScreenCoord = Coord - Min + int2(4, 0);
@@ -112,6 +120,7 @@ void Day14()
 	for (int y = Min.Y; y <= Max.Y; y++)
 		for (int x = Min.X - 4; x <= Max.X; x++)
 			RefreshVisual(int2(x, y));
+#endif
 
 	int UnitsSpawned = 0;
 	bool ReachedAbyss = false;
@@ -159,17 +168,26 @@ void Day14()
 			}
 		}
 
+#ifdef VISUALIZATION
 		// Refresh viz
 		RefreshVisual(LastPos);
 		RefreshVisual(FallingSand);
 		LastPos = FallingSand;
+#endif
 
 		// For visualization purposes
 		//std::this_thread::sleep_for(std::chrono::milliseconds(1));
 	}
 
+#ifdef VISUALIZATION
 	// Move past the viz
 	for (int i = Min.Y; i <= Max.Y + 1; i++)
 		std::cout << '\n';
-	std::cout << "It took " << UnitsSpawned << " units of sand to reach the abyss.\n";
+#endif
+
+	auto finish = std::chrono::high_resolution_clock::now();
+
+	std::cout << "It took " << UnitsSpawned << " units of sand to reach the abyss/block the entry. (took "
+		<< std::chrono::duration_cast<std::chrono::microseconds>(finish - start).count()
+		<< " microseconds)\n";
 }
