@@ -28,7 +28,7 @@ void Day6()
         if (LastNChars.size() == MessageLength)
         {
             char PoppedChar = LastNChars.front();
-            int8_t PoppedIndex = KeyIndex(PoppedChar);
+            int8_t PoppedIndex = (int8_t) KeyIndex(PoppedChar);
             CharOccurences[PoppedIndex]--;
             if (CharOccurences[PoppedIndex] == 0)
                 UniqueChars--;
@@ -37,7 +37,7 @@ void Day6()
 
         CharactersProcessed++;
 
-        int8_t PushedIndex = KeyIndex(ThisChar);
+        int8_t PushedIndex = (int8_t) KeyIndex(ThisChar);
         CharOccurences[PushedIndex]++;
         if (CharOccurences[PushedIndex] == 1)
         {

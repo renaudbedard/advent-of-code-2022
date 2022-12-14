@@ -11,8 +11,8 @@ void Day8()
     std::ifstream InputStream;
     InputStream.open("day8input.txt", std::ios::in);
 
-    int RowIndex = 0;
-    int ColIndex = 0;
+    uint16_t RowIndex = 0;
+    uint16_t ColIndex = 0;
     for (char ThisChar; InputStream.get(ThisChar); )
     {
         if (ThisChar == '\n')

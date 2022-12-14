@@ -119,7 +119,7 @@ void Day11()
         }
     }
 
-    std::sort(Monkeys.begin(), Monkeys.end(), 
+    std::sort(Monkeys.begin(), Monkeys.end(),
         [](const Monkey& lhs, const Monkey& rhs) { return lhs.InspectionCount > rhs.InspectionCount; });
 
     std::cout << "Monkey business level of two most active monkeys : " << (Monkeys[0].InspectionCount * Monkeys[1].InspectionCount) << '\n';

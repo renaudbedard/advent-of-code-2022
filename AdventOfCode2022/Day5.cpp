@@ -37,9 +37,9 @@ void Day5()
         std::smatch Matches;
         std::regex_search(LineString, Matches, Regex);
 
-        uint8_t MovedQuantity = std::stoi(Matches[1]);
-        uint8_t FromStack = std::stoi(Matches[2]) - 1; // Array is 0-indexed, instructions are 1-indexed
-        uint8_t ToStack = std::stoi(Matches[3]) - 1;
+        uint8_t MovedQuantity = (uint8_t) std::stoi(Matches[1]);
+        uint8_t FromStack = (uint8_t) std::stoi(Matches[2]) - 1; // Array is 0-indexed, instructions are 1-indexed
+        uint8_t ToStack = (uint8_t) std::stoi(Matches[3]) - 1;
 
         for (uint8_t i = 0; i < MovedQuantity; i++)
         {
