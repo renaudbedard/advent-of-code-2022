@@ -40,7 +40,7 @@ struct Packet
 	}
 };
 
-int ComparePackets(const Packet& lhs, const Packet& rhs, std::string Prefix)
+int ComparePackets(const Packet& lhs, const Packet& rhs, std::string Prefix = "")
 {
 	std::cout << Prefix << "- Compare ";
 	lhs.Print();
@@ -170,7 +170,7 @@ void Day13()
 	std::cout.setstate(std::ios_base::badbit);
 
 	std::sort(AllPackets.begin(), AllPackets.end(), [](const Packet* lhs, const Packet* rhs) {
-		return ComparePackets(*lhs, *rhs, "  ") < 0;
+		return ComparePackets(*lhs, *rhs) < 0;
 	});
 
 	// Recover cout
