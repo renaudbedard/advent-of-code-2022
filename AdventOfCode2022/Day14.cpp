@@ -1,5 +1,5 @@
-#define PART_TWO
-//#define VISUALIZATION
+﻿#define PART_TWO
+#define VISUALIZATION
 
 #ifdef VISUALIZATION
 #define WIN32_LEAN_AND_MEAN
@@ -18,14 +18,15 @@
 #include "int2.h"
 
 #ifdef VISUALIZATION
-void WriteAt(std::string str, int2 pos) 
+void WriteAt(std::wstring str, int2 pos)
 {
-	std::wstring wideStr(str.begin(), str.end());
-
 	COORD coord = { (SHORT) pos.X, (SHORT) pos.Y };
 	HANDLE output = GetStdHandle(STD_OUTPUT_HANDLE);
 	DWORD dwBytesWritten = 0;
-	WriteConsoleOutputCharacter(output, wideStr.c_str(), (DWORD) str.size(), coord, &dwBytesWritten);
+
+	SetConsoleMode(output, ENABLE_VIRTUAL_TERMINAL_PROCESSING | ENABLE_PROCESSED_OUTPUT);
+	SetConsoleCursorPosition(output, coord);
+	WriteConsole(output, str.c_str(), (DWORD) str.size(), &dwBytesWritten, nullptr);
 }
 #endif
 
@@ -35,6 +36,7 @@ void Day14()
 
 	std::unordered_set<int2> Obstacles;
 	std::unordered_set<int2> RestingSand;
+	std::vector<int2*> FallingSand;
 
 	std::ifstream InputStream;
 	std::regex PathRegex("(\\d+),(\\d+)( ->)?");
@@ -84,99 +86,113 @@ void Day14()
 	Max.Y += 2;
 #endif
 
-	int2 FallingSand = SandEntryPoint;
-
 	auto IsBlocked = [&](int2 Coord)
 	{
 #ifdef PART_TWO
-		return Coord.Y == Max.Y || Obstacles.find(FallingSand) != Obstacles.end();
+		return Coord.Y == Max.Y || Obstacles.find(Coord) != Obstacles.end();
 #else
-		return Obstacles.find(FallingSand) != Obstacles.end();
+		return Obstacles.find(Coord) != Obstacles.end();
 #endif
 	};
 
 #ifdef VISUALIZATION
-	auto RefreshVisual = [&](int2 Coord)
+	auto RefreshVisual = [&](int2 Coord, bool IsFallingSand = false)
 	{
 		int2 ScreenCoord = Coord - Min + int2(4, 0);
 
 		if (ScreenCoord.X == 0)
-			WriteAt(std::to_string(Coord.Y), ScreenCoord);
+			WriteAt(std::to_wstring(Coord.Y), ScreenCoord);
 		else if (ScreenCoord.X < 3)
 			return;
 		else if (ScreenCoord.X == 3)
-			WriteAt(" ", ScreenCoord);
+			WriteAt(L" ", ScreenCoord);
 		else if (Coord == SandEntryPoint)
-			WriteAt("+", ScreenCoord);
-		else if (Coord == FallingSand || RestingSand.find(Coord) != RestingSand.end())
-			WriteAt("o", ScreenCoord);
+			WriteAt(L"\033[33m█\033[0m", ScreenCoord);
+		else if (IsFallingSand)
+			WriteAt(L"\033[93;1m■\033[0m", ScreenCoord);
+		else if (RestingSand.find(Coord) != RestingSand.end())
+			WriteAt(L"\033[33m█\033[0m", ScreenCoord);
 		else if (IsBlocked(Coord))
-			WriteAt("#", ScreenCoord);
+			WriteAt(L"\033[94m█\033[0m", ScreenCoord);
 		else
-			WriteAt(".", ScreenCoord);
+			WriteAt(L"\033[90m·\033[0m", ScreenCoord);
 	};
 
 	// Draw caves
 	for (int y = Min.Y; y <= Max.Y; y++)
-		for (int x = Min.X - 4; x <= Max.X; x++)
+		for (int x = Max.X; x >= Min.X - 4; x--)
 			RefreshVisual(int2(x, y));
 #endif
 
 	int UnitsSpawned = 0;
 	bool ReachedAbyss = false;
 	bool EntryBlocked = false;
-	int2 LastPos = SandEntryPoint;
+	int SpawnIn = 0;
+
+	std::this_thread::sleep_for(std::chrono::milliseconds(6000));
 
 	while (!EntryBlocked && !ReachedAbyss)
 	{
-		// Spawn sand
-		FallingSand = SandEntryPoint;
-		UnitsSpawned++;
+		if (SpawnIn == 0)
+		{
+			SpawnIn = 1;
+			FallingSand.push_back(new int2(SandEntryPoint));
+			UnitsSpawned++;
+		}
+		else
+			SpawnIn--;
+		
 		bool AtRest = false;
 
-		while (!AtRest && !(EntryBlocked || ReachedAbyss))
+		for (auto SandIt = FallingSand.begin(); SandIt != FallingSand.end(); ++SandIt)
 		{
-			// Fall
-			FallingSand += int2(0, 1);
+			int2* Sand = *SandIt;
 
-			if (FallingSand.Y > Max.Y)
+			int2 LastPos = *Sand;
+			bool Deleted = false;
+
+			// Fall
+			Sand->Y++;
+
+			if (Sand->Y > Max.Y)
 			{
 				UnitsSpawned--; // Don't count the one that reached the abyss
 				ReachedAbyss = true;
+				break;
 			}
 
-			if (IsBlocked(FallingSand))
+			if (IsBlocked(*Sand))
 			{
 				// Try moving left
-				FallingSand.X -= 1;
-				if (IsBlocked(FallingSand))
+				Sand->X -= 1;
+				if (IsBlocked(*Sand))
 				{
 					// Try moving right
-					FallingSand.X += 2;
-					if (IsBlocked(FallingSand))
+					Sand->X += 2;
+					if (IsBlocked(*Sand))
 					{
 						// Recover position
-						FallingSand += int2(-1, -1);
+						*Sand += int2(-1, -1);
 						AtRest = true;
-						RestingSand.insert(FallingSand);
-						Obstacles.insert(FallingSand); // Count resting sand as obstacles to avoid two collision lookups
+						RestingSand.insert(*Sand);
+						Obstacles.insert(*Sand); // Count resting sand as obstacles to avoid two collision lookups
 
-						if (FallingSand == SandEntryPoint)
+						if (*Sand == SandEntryPoint)
 							EntryBlocked = true;
+
+						SandIt = FallingSand.erase(SandIt);
+						delete Sand;
+						Deleted = true;
 					}
 				}
 			}
-		}
 
 #ifdef VISUALIZATION
-		// Refresh viz
-		RefreshVisual(LastPos);
-		RefreshVisual(FallingSand);
-		LastPos = FallingSand;
+			RefreshVisual(LastPos);
+			if (!Deleted)
+				RefreshVisual(*Sand, true);
 #endif
-
-		// For visualization purposes
-		//std::this_thread::sleep_for(std::chrono::milliseconds(1));
+		}
 	}
 
 #ifdef VISUALIZATION
