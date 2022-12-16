@@ -68,6 +68,11 @@ namespace std
     inline int cmax(const int2& v) { return max(v.X, v.Y); }
     inline int2 min(const int2& lhs, const int2& rhs) { return int2(min(lhs.X, rhs.X), min(lhs.Y, rhs.Y)); }
     inline int2 max(const int2& lhs, const int2& rhs) { return int2(max(lhs.X, rhs.X), max(lhs.Y, rhs.Y)); }
+
+    inline int manhattan_distance(const int2& lhs, const int2& rhs)
+    { 
+        return abs(lhs.X - rhs.X) + abs(lhs.Y - rhs.Y);
+    }
 }
 
 inline bool operator==(const int2& lhs, const int2& rhs) { return lhs.X == rhs.X && lhs.Y == rhs.Y; }

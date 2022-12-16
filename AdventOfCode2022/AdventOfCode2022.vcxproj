@@ -136,6 +136,7 @@
     <ClCompile Include="Day12.cpp" />
     <ClCompile Include="Day13.cpp" />
     <ClCompile Include="Day14.cpp" />
+    <ClCompile Include="Day15.cpp" />
     <ClCompile Include="Day2.cpp" />
     <ClCompile Include="Day3.cpp" />
     <ClCompile Include="Day4.cpp" />
@@ -165,6 +166,8 @@
     <Text Include="day13testinput.txt" />
     <Text Include="day14input.txt" />
     <Text Include="day14testinput.txt" />
+    <Text Include="day15input.txt" />
+    <Text Include="day15testinput.txt" />
     <Text Include="day1input.txt">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
       <DeploymentContent Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</DeploymentContent>
