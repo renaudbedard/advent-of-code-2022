@@ -88,10 +88,6 @@ SimulationState Simulate(SimulationState State)
 	if (State.Minutes == TotalMinutes)
 		return State;
 
-	// Moving for more than 30 steps makes no sense (TODO: calculate max distance between valves from source data)
-	if (State.ConsecutiveMoves > TotalMinutes)
-		return State;
-
 	// All valves open? Nothing to do
 	if (State.OpenedValves.count() == NonZeroValves)
 	{
