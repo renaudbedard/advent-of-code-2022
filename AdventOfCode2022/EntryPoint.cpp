@@ -1,8 +1,8 @@
-void Day15();
+void Day16();
 
 int main()
 {
-	Day15();
+	Day16();
 
 	return 0;
 }
