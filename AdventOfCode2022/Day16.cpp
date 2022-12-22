@@ -26,12 +26,10 @@ struct SimulationState
 {
 	int FlowRate = 0;
 	int Pressure = 0;
-	int ConsecutiveMoves = 0;
 	int Minutes = 0;
 	std::bitset<64> OpenedValves;
 	Valve* Current = nullptr;
-	std::string FullTrail;
-	std::string PartialTrail;
+	std::string Trail;
 };
 bool operator==(const SimulationState& lhs, const SimulationState& rhs)
 {
@@ -68,16 +66,16 @@ size_t ValveBit(Valve* Valve)
 
 SimulationState Simulate(SimulationState State);
 
-Valve* Simulate(Valve* From, std::bitset<64> OpenedValves, int Minutes)
+Valve* Simulate(Valve* From, std::bitset<64> OpenedValves, int Minutes, int FlowRate)
 {
 	SimulationState State;
 	State.Minutes = Minutes;
 	State.Current = From;
+	State.FlowRate = FlowRate;
 	State.OpenedValves = OpenedValves;
-	State.FullTrail = From->Name;
 	SimulationState Result = Simulate(State);
 
-	//std::cout << Result.FullTrail << " = " << Result.Pressure << '\n';
+	std::cout << State.Current->Name << Result.Trail << " = " << Result.Pressure << '\n';
 
 	return Result.Current;
 }
@@ -85,7 +83,7 @@ Valve* Simulate(Valve* From, std::bitset<64> OpenedValves, int Minutes)
 SimulationState Simulate(SimulationState State)
 {
 	// 30 Steps? We're outta time
-	if (State.Minutes == TotalMinutes)
+	if (State.Minutes > TotalMinutes)
 		return State;
 
 	// All valves open? Nothing to do
@@ -93,13 +91,12 @@ SimulationState Simulate(SimulationState State)
 	{
 		SimulationState IdleState = State;
 		IdleState.Minutes++;
-		IdleState.FullTrail += ">_";
 
 		// We still need to keep the simulation going so that we account for remaining minutes
 		SimulationState ResultState = Simulate(IdleState);
 
-		ResultState.PartialTrail = ">_" + ResultState.PartialTrail;
-		ResultState.Pressure += IdleState.FlowRate;
+		ResultState.Trail = ">_" + ResultState.Trail;
+		ResultState.Pressure += State.FlowRate;
 
 		return ResultState;
 	}
@@ -118,15 +115,13 @@ SimulationState Simulate(SimulationState State)
 		SimulationState OptionResult = State;
 		OptionResult.FlowRate += State.Current->FlowRate;
 		OptionResult.OpenedValves.set(ValveBit(State.Current));
-		OptionResult.ConsecutiveMoves = 0;
 		OptionResult.Minutes++;
-		OptionResult.FullTrail += ">+";
 
 		BestResult = Simulate(OptionResult);
 		
-		BestResult.PartialTrail = ">+" + OptionResult.PartialTrail;
+		BestResult.Trail = ">+" + BestResult.Trail;
 		BestResult.Current = State.Current;
-		BestResult.Pressure += OptionResult.FlowRate;
+		BestResult.Pressure += State.FlowRate;
 
 		HasResult = true;
 	}
@@ -136,13 +131,11 @@ SimulationState Simulate(SimulationState State)
 	{
 		SimulationState OptionInput(State);
 		OptionInput.Current = Destination;
-		OptionInput.ConsecutiveMoves++;
 		OptionInput.Minutes++;
-		OptionInput.FullTrail += ">" + Destination->Name;
 
 		SimulationState OptionResult = Simulate(OptionInput);
 
-		OptionResult.PartialTrail = ">" + Destination->Name + OptionResult.PartialTrail;
+		OptionResult.Trail = ">" + Destination->Name + OptionResult.Trail;
 		OptionResult.Pressure += State.FlowRate;
 
 		if (OptionResult.Pressure > BestResult.Pressure)
@@ -178,9 +171,9 @@ void Day16()
 	auto start = std::chrono::high_resolution_clock::now();
 
 	std::ifstream InputStream;
-	//InputStream.open("day16input.txt", std::ios::in);
+	InputStream.open("day16input.txt", std::ios::in);
 	//InputStream.open("day16testinput.txt", std::ios::in);
-	InputStream.open("day16testinput2.txt", std::ios::in);
+	//InputStream.open("day16testinput2.txt", std::ios::in);
 
 	std::regex LineRegex("Valve ([A-Z]{2}) has flow rate=(\\d+); tunnels? leads? to valves? ([A-Z]{2}.*)+");
 
@@ -242,23 +235,22 @@ void Day16()
 
 		TotalPressure += TotalFlowRate;
 
-		if (OpenedValves.count() != NonZeroValves)
-		{
-			PressureCache.clear();
-			Valve* BestDestination = Simulate(CurrentValve, OpenedValves, i);
+		Valve* BestDestination = Simulate(CurrentValve, OpenedValves, i, TotalFlowRate);
 
-			if (BestDestination == CurrentValve)
+		if (BestDestination == CurrentValve)
+		{
+			if (!CurrentValve->Opened)
 			{
 				CurrentValve->Opened = true;
 				TotalFlowRate += CurrentValve->FlowRate;
 				std::cout << "You open valve " << CurrentValve->Name << ".\n";
 				OpenedValves.set(ValveBit(CurrentValve));
 			}
-			else
-			{
-				CurrentValve = BestDestination;
-				std::cout << "You move to valve " << CurrentValve->Name << ".\n";
-			}
+		}
+		else
+		{
+			CurrentValve = BestDestination;
+			std::cout << "You move to valve " << CurrentValve->Name << ".\n";
 		}
 
 		std::cout << "\n";
