@@ -134,9 +134,6 @@
     <Text Include="day16testinput.txt">
       <Filter>Resource Files</Filter>
     </Text>
-    <Text Include="day16testinput2.txt">
-      <Filter>Resource Files</Filter>
-    </Text>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="int2.h">

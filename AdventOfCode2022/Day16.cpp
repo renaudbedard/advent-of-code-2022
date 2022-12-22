@@ -1,12 +1,10 @@
-#include <iostream>
+﻿#include <iostream>
 #include <fstream>
 #include <string>
 #include <chrono>
 #include <regex>
 #include <unordered_map>
 #include <bitset>
-
-const int TotalMinutes = 30;
 
 struct Valve
 {
@@ -29,7 +27,9 @@ struct SimulationState
 	int Minutes = 0;
 	std::bitset<64> OpenedValves;
 	Valve* Current = nullptr;
+#ifdef _DEBUG
 	std::string Trail;
+#endif
 };
 bool operator==(const SimulationState& lhs, const SimulationState& rhs)
 {
@@ -55,6 +55,8 @@ namespace std
 	};
 }
 
+const int TotalMinutes = 30;
+
 int NonZeroValves = 0;
 std::vector<Valve*> Valves;
 std::unordered_map<SimulationState, SimulationState> PressureCache;
@@ -74,9 +76,9 @@ Valve* Simulate(Valve* From, std::bitset<64> OpenedValves, int Minutes, int Flow
 	State.FlowRate = FlowRate;
 	State.OpenedValves = OpenedValves;
 	SimulationState Result = Simulate(State);
-
+#ifdef _DEBUG
 	std::cout << State.Current->Name << Result.Trail << " = " << Result.Pressure << '\n';
-
+#endif
 	return Result.Current;
 }
 
@@ -94,8 +96,9 @@ SimulationState Simulate(SimulationState State)
 
 		// We still need to keep the simulation going so that we account for remaining minutes
 		SimulationState ResultState = Simulate(IdleState);
-
+#ifdef _DEBUG
 		ResultState.Trail = ">_" + ResultState.Trail;
+#endif
 		ResultState.Pressure += State.FlowRate;
 
 		return ResultState;
@@ -118,8 +121,9 @@ SimulationState Simulate(SimulationState State)
 		OptionResult.Minutes++;
 
 		BestResult = Simulate(OptionResult);
-		
+#ifdef _DEBUG		
 		BestResult.Trail = ">+" + BestResult.Trail;
+#endif
 		BestResult.Current = State.Current;
 		BestResult.Pressure += State.FlowRate;
 
@@ -134,8 +138,9 @@ SimulationState Simulate(SimulationState State)
 		OptionInput.Minutes++;
 
 		SimulationState OptionResult = Simulate(OptionInput);
-
+#ifdef _DEBUG
 		OptionResult.Trail = ">" + Destination->Name + OptionResult.Trail;
+#endif
 		OptionResult.Pressure += State.FlowRate;
 
 		if (OptionResult.Pressure > BestResult.Pressure)
@@ -173,7 +178,6 @@ void Day16()
 	std::ifstream InputStream;
 	InputStream.open("day16input.txt", std::ios::in);
 	//InputStream.open("day16testinput.txt", std::ios::in);
-	//InputStream.open("day16testinput2.txt", std::ios::in);
 
 	std::regex LineRegex("Valve ([A-Z]{2}) has flow rate=(\\d+); tunnels? leads? to valves? ([A-Z]{2}.*)+");
 
@@ -185,11 +189,16 @@ void Day16()
 		Valves.emplace_back(new Valve(Matches[1], std::stoi(Matches[2]), Matches[3]));
 	}
 
+	Valve* CurrentValve = nullptr;
+
 	// Connect valves
 	for (Valve* SourceValve : Valves)
 	{
 		if (SourceValve->FlowRate > 0)
 			NonZeroValves++;
+
+		if (SourceValve->Name == "AA")
+			CurrentValve = SourceValve;
 
 		for (int i = 0; i < SourceValve->TunnelsString.size(); i += 4)
 		{
@@ -204,7 +213,6 @@ void Day16()
 
 	std::cout << "There are " << NonZeroValves << " valves to open.\n\n";
 
-	Valve* CurrentValve = Valves[0];
 	int TotalFlowRate = 0;
 	int TotalPressure = 0;
 	std::bitset<64> OpenedValves;
@@ -259,6 +267,6 @@ void Day16()
 	auto finish = std::chrono::high_resolution_clock::now();
 
 	std::cout << "Released a total of " << TotalPressure << " pressure. (took "
-		<< std::chrono::duration_cast<std::chrono::seconds>(finish - start).count()
-		<< " seconds)\n";
+		<< std::chrono::duration_cast<std::chrono::milliseconds>(finish - start).count()
+		<< " ms)\n";
 }

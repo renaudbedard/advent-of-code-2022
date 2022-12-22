@@ -171,7 +171,6 @@
     <Text Include="day15testinput.txt" />
     <Text Include="day16input.txt" />
     <Text Include="day16testinput.txt" />
-    <Text Include="day16testinput2.txt" />
     <Text Include="day1input.txt">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
       <DeploymentContent Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</DeploymentContent>
